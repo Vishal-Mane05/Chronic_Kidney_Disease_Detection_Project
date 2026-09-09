@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - CKD Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f8fafc;
+            --text-main: #334155;
+            --text-muted: #64748b;
+        }
+
+        body { 
+            background: var(--bg-color); 
+            font-family: 'Inter', sans-serif; 
+            color: var(--text-main); 
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .dashboard-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid rgba(0,0,0,0.05);
+            padding: 30px 25px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .brand-logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); text-decoration: none; letter-spacing: -0.5px; }
+        
+        .user-profile { margin: 30px 0; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .user-profile .avatar { width: 45px; height: 45px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; margin-bottom: 12px; }
+
+        .btn-sidebar {
+            display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 20px;
+            border-radius: 14px; font-weight: 600; font-size: 0.95rem; text-decoration: none;
+            transition: all 0.2s ease; margin-bottom: 12px; border: 2px solid transparent;
+        }
+        .btn-primary-custom { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.15); }
+        .btn-primary-custom:hover { background: var(--primary-dark); transform: translateY(-2px); color: white; }
+        .btn-outline-custom { background: transparent; color: var(--primary); border-color: rgba(37,99,235,0.2); }
+        .btn-outline-custom:hover { background: #eff6ff; border-color: var(--primary); transform: translateY(-2px); color: var(--primary-dark); }
+
+        .sidebar-stat { margin-top: auto; background: #eff6ff; padding: 20px; border-radius: 16px; border: 1px solid #dbeafe; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            padding: 50px 60px;
+            overflow-y: auto;
+        }
+
+        .page-header { margin-bottom: 40px; }
+        .page-header h1 { font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; color: #0f172a; }
+        
+        /* --- CARDS --- */
+        .glass-card {
+            background: white; border-radius: 24px; padding: 35px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-bottom: 30px;
+        }
+
+        .stat-pill { background: #f8fafc; padding: 15px 25px; border-radius: 16px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 15px; }
+
+        /* --- HISTORY CARDS --- */
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        
+        .history-card {
+            background: #f8fafc; border-radius: 16px; padding: 20px;
+            border: 1px solid #e2e8f0; transition: all 0.2s ease;
+            text-decoration: none; color: inherit; display: block;
+        }
+        .history-card:hover { transform: translateY(-4px); box-shadow: 0 15px 30px -10px rgba(0,0,0,0.08); border-color: #cbd5e1; background: white;}
+        
+        .badge-status { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
+        .bg-danger-soft { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .bg-success-soft { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+
+        .ct-thumbnail { width: 70px; height: 70px; object-fit: cover; border-radius: 12px; border: 1px solid #cbd5e1; flex-shrink: 0; }
+
+        @media (max-width: 992px) {
+            .dashboard-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; padding: 20px; border-right: none; border-bottom: 1px solid #e2e8f0; }
+            .main-content { padding: 30px 20px; }
+            .sidebar-stat { margin-top: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    
+    <aside class="sidebar">
+        <a href="/" class="brand-logo"><i class="fas fa-kidneys me-2"></i>CKD Portal</a>
+        
+        <div class="user-profile">
+            <div class="avatar">{{ current_user.name[0]|upper }}</div>
+            <p class="small text-muted fw-bold mb-1 text-uppercase">Patient Record</p>
+            <h6 class="fw-bold m-0 text-truncate text-dark">{{ current_user.name }}</h6>
+            <a href="/logout" class="small text-danger fw-bold text-decoration-none mt-2 d-inline-block"><i class="fas fa-sign-out-alt me-1"></i>Secure Logout</a>
+        </div>
+
+        <div class="action-menu mt-2">
+            <p class="small text-muted fw-bold mb-3 ms-1 text-uppercase">Diagnostics</p>
+            <a href="/clinical" class="btn-sidebar btn-primary-custom">
+                <i class="fas fa-plus-circle"></i> New Clinical Test
+            </a>
+            <a href="/ctscan" class="btn-sidebar btn-outline-custom">
+                <i class="fas fa-upload"></i> Upload CT Scan
+            </a>
+        </div>
+
+        <div class="sidebar-stat">
+            <p class="small text-primary fw-bold mb-1 text-uppercase">Lifetime Assessments</p>
+            <h2 class="fw-bold text-primary m-0">{{ clinical_history|length + ctscan_history|length }}</h2>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        
+        <div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+            <div>
+                <h1>Health Intelligence</h1>
+                <p class="text-muted fs-5 m-0">Track your diagnostic history and AI risk trends over time.</p>
+            </div>
+            
+            <div class="stat-pill">
+                <div class="text-warning fs-3"><i class="fas fa-calendar-check"></i></div>
+                <div>
+                    <p class="small text-muted fw-bold mb-0 text-uppercase">Latest Screening</p>
+                    <h5 class="fw-bold m-0 text-dark">
+                        {% if clinical_history %} {{ clinical_history[0].date_tested.strftime('%b %d, %Y') }}
+                        {% else %} No Data {% endif %}
+                    </h5>
+                </div>
+            </div>
+        </div>
+
+        {% if clinical_history|length >= 2 %}
+        <div class="glass-card">
+            <h5 class="fw-bold mb-4"><i class="fas fa-chart-line text-primary me-2"></i>AI Risk Progression Trend</h5>
+            <div style="height: 250px; width: 100%;">
+                <canvas id="healthTrendChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            
+            <div class="col-xl-6">
+                <div class="glass-card h-100">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-vial text-primary me-2"></i>Clinical Lab History</h5>
+                    
+                    {% if not clinical_history %}
+                        <div class="text-center p-5 border border-dashed rounded-4" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                            <i class="fas fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted fw-bold">No clinical tests recorded yet.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex flex-column gap-3">
+                        {% for record in clinical_history %}
+                        <a href="/record/clinical/{{ record.id }}" class="history-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted small fw-bold"><i class="far fa-clock me-1"></i>{{ record.date_tested.strftime('%b %d, %Y') }}</span>
+                                <span class="badge-status {% if 'No CKD' in record.prediction %}bg-success-soft{% else %}bg-danger-soft{% endif %}">
+                                    {{ record.prediction }}
+                                </span>
+                            </div>
+                            <h6 class="fw-bold mb-2 text-dark">AI Confidence: {{ record.confidence }}%</h6>
+                            <div class="pt-2 border-top d-flex gap-4 text-muted small mt-2">
+                                <span><i class="fas fa-heartbeat me-1"></i>BP: {{ record.input_data[1] }}</span>
+                                <span><i class="fas fa-tint me-1"></i>Gluc: {{ record.input_data[5] }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="glass-card h-100">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-x-ray text-primary me-2"></i>Radiology (CT Scans)</h5>
+                    
+                    {% if not ctscan_history %}
+                        <div class="text-center p-5 border border-dashed rounded-4" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                            <i class="fas fa-images fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted fw-bold">No CT scans uploaded yet.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex flex-column gap-3">
+                        {% for record in ctscan_history %}
+                        <a href="/record/ctscan/{{ record.id }}" class="history-card">
+                            <div class="d-flex gap-3 align-items-center">
+                                <img src="/{{ record.heatmap_path }}" class="ct-thumbnail">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-muted small fw-bold"><i class="far fa-clock me-1"></i>{{ record.date_tested.strftime('%b %d, %Y') }}</span>
+                                    </div>
+                                    <h6 class="fw-bold mb-2 text-dark">{{ record.prediction }} Detected</h6>
+                                    <span class="badge-status {% if record.prediction == 'Normal' %}bg-success-soft{% else %}bg-danger-soft{% endif %}">
+                                        AI Confidence: {{ record.confidence }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if clinical_history|length >= 2 %}
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('healthTrendChart').getContext('2d');
+        const rawData = [
+            {% for record in clinical_history|reverse %}
+                { 
+                    date: "{{ record.date_tested.strftime('%b %d') }}", 
+                    riskScore: {% if 'No CKD' in record.prediction %} {{ 100 - record.confidence }} {% else %} {{ record.confidence }} {% endif %}
+                },
+            {% endfor %}
+        ];
+        const labels = rawData.map(d => d.date);
+        const riskScores = rawData.map(d => d.riskScore);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'CKD Risk Percentage',
+                    data: riskScores,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#2563eb',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, /* Added to allow custom height */
+                plugins: { legend: { display: false }, tooltip: { padding: 12, cornerRadius: 8 } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    });
+    {% endif %}
+</script>
+
+</body>
+</html>

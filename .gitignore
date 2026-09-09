@@ -1,0 +1,4 @@
+models/ckd_resnet50.keras
+instance/hospital_records.db
+tempCodeRunnerFile.py
+.env
