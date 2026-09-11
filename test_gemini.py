@@ -1,7 +1,7 @@
 from google import genai
+import os
 
-# PASTE YOUR BRAND NEW KEY EXACTLY BETWEEN THE QUOTES
-API_KEY = "AIzaSyCdJGKCEJYcSpDa6qopTV-epI9hFwffA64"
+API_KEY = os.getenv("GEMINI_API_KEY")
 
 print("Testing API Key...")
 try:
